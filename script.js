@@ -2,6 +2,7 @@
    Flores-Marina — regalo para Marina
    Flores de limpiapipas (pipe cleaner flowers)
    Puedes plantar flores haciendo clic en cualquier parte de la pantalla.
+   Los ramos aparecen en posiciones aleatorias. Diseño responsive.
    Personaliza colores en PALETTES / STEM_* y textos en index.html
    ========================================================================= */
 
@@ -85,6 +86,14 @@ const STEM_LIGHT = '#8ce8b5';
 const CENTERS = ['#ffd60a', '#ff9d00', '#ff5f9e', '#ffffff'];
 
 function pick(arr) { return arr[(Math.random() * arr.length) | 0]; }
+
+/* --- factor de escala según el ancho de pantalla (responsive) --- */
+function scale() {
+  const w = window.innerWidth;
+  if (w < 400) return 0.6;
+  if (w < 768) return 0.8;
+  return 1;
+}
 
 /* --- trazado de una espiral (coil de limpiapipas) --- */
 function spiralPath(turns, rMax) {
@@ -173,6 +182,7 @@ function flowerSVG(type, colors, h) {
 }
 
 function plantFlower(x, y, hOpt) {
+  const s = scale();
   const h = hOpt || (90 + Math.random() * 60);
   const type = pick(['loop', 'spiral', 'pompom', 'loop', 'loop', 'spiral']);
   const colors = PALETTES[pick(PALETTE_KEYS)];
@@ -180,6 +190,8 @@ function plantFlower(x, y, hOpt) {
   el.className = 'flower';
   el.style.left = (x - 40) + 'px';
   el.style.top = (y - h) + 'px';
+  el.style.transform = 'scale(' + s + ')';
+  el.style.transformOrigin = '50% 100%';
   el.innerHTML = flowerSVG(type, colors, h);
   GARDEN.appendChild(el);
   requestAnimationFrame(function () { el.classList.add('blooming'); });
@@ -204,31 +216,47 @@ function wrapperSVG() {
     '</svg>';
 }
 
+/* --- posición aleatoria dentro de la pantalla (con márgenes) --- */
+function randomBouquetSpot() {
+  const s = scale();
+  const mx = 100 * s;       // margen horizontal
+  const myTop = 150 * s;    // margen superior (las flores crecen hacia arriba)
+  const myBottom = 70 * s;  // margen inferior
+  return {
+    x: mx + Math.random() * (window.innerWidth - mx * 2),
+    y: myTop + Math.random() * (window.innerHeight - myTop - myBottom)
+  };
+}
+
 function spawnBouquet(cx, cy) {
+  const s = scale();
   // envoltorio de papel + lazo
   const wrap = document.createElement('div');
   wrap.className = 'wrap';
   wrap.innerHTML = wrapperSVG();
   wrap.style.left = (cx - 80) + 'px';
-  wrap.style.top = (cy - 15) + 'px';
+  wrap.style.top = (cy - 72) + 'px';
+  wrap.style.transform = 'scale(' + s + ')';
+  wrap.style.transformOrigin = '50% 90%';
   GARDEN.appendChild(wrap);
   requestAnimationFrame(function () { wrap.classList.add('show'); });
 
-  // flores en forma de domo, con tallos más cortos
+  // flores en forma de domo, con tallos cortos que convergen en el centro
   const n = 22;
   for (let i = 0; i < n; i++) {
     const a = Math.PI + (i / (n - 1)) * Math.PI; // π → 2π (semicírculo superior)
-    const r = 20 + Math.random() * 45;
+    const r = (20 + Math.random() * 45) * s;
     const x = cx + Math.cos(a) * r;
-    const y = cy + 40;
+    const y = cy;
     (function (fx, fy) {
-      setTimeout(function () { plantFlower(fx, fy, 80 + Math.random() * 30); }, i * 70);
+      setTimeout(function () { plantFlower(fx, fy, 90 + Math.random() * 30); }, i * 70);
     })(x, y);
   }
 }
 
 document.getElementById('bouquet').addEventListener('click', function () {
-  spawnBouquet(window.innerWidth / 2, window.innerHeight * 0.6);
+  const p = randomBouquetSpot();
+  spawnBouquet(p.x, p.y);
 });
 
 /* ---------- Carta (voltear y desvanecer) ---------- */
@@ -241,10 +269,9 @@ document.getElementById('openCard').addEventListener('click', function () {
 document.getElementById('doneReading').addEventListener('click', finishReading);
 
 function finishReading() {
-  const card = document.getElementById('card');
-  const rect = card.getBoundingClientRect();
   const section = document.getElementById('carta');
   section.classList.add('gone');
   setTimeout(function () { section.style.display = 'none'; }, 900);
-  spawnBouquet(rect.left + rect.width / 2, rect.top + rect.height / 2);
+  const p = randomBouquetSpot();
+  spawnBouquet(p.x, p.y);
 }

@@ -51,7 +51,7 @@ Tarda ~1 minuto en publicarse la primera vez.
 ## Personalizar
 
 - Carta y mensajes: edita los `<p>` dentro de `.card-back` en `index.html`.
-- Firma ("— Tú"): busca `.signature` en `index.html`.
+- Firma ("— Andrés"): busca `.signature` en `index.html`.
 - Colores del tema: variables en `:root` de `styles.css`.
 - Colores de flores: `PALETTES` en `script.js`.
 - Tipos de flor: `buildBloom` en `script.js` (loop, spiral, pompom — flores de limpiapipas).
